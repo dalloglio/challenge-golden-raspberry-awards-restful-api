@@ -2,8 +2,22 @@ version: '3.9'
 
 services:
   app:
-    build: .
-    ports:
-      - 3000:3000
+    image: node:20.11.1-alpine3.19
+    working_dir: /home/node/app
+    command: tail -f /dev/null
+    user: node
+    environment:
+      - NODE_ENV=development
     volumes:
       - .:/home/node/app
+    ports:
+      - 3000:3000
+
+  app-prod:
+    build: .
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./movies.csv:/home/node/app/movies.csv
+    ports:
+      - 3000:3000
