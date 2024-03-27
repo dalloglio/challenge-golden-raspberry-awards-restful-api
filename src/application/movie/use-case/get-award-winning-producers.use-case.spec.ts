@@ -109,6 +109,7 @@ describe('Get Award-Winning Producers Use Case', () => {
       MovieFactory.create('Movie 1', 1900, true).addProducer(producerA),
       MovieFactory.create('Movie 2', 1905, true).addProducer(producerA),
       MovieFactory.create('Movie 3', 1910, true).addProducer(producerA),
+      MovieFactory.create('Movie 4', 1915, true).addProducer(producerA),
     ]);
 
     const useCase = new GetAwardWinningProducersUseCase(repository);
@@ -123,6 +124,18 @@ describe('Get Award-Winning Producers Use Case', () => {
           previousWin: 1900,
           followingWin: 1905,
         },
+        {
+          producer: 'Producer A',
+          interval: 5,
+          previousWin: 1905,
+          followingWin: 1910,
+        },
+        {
+          producer: 'Producer A',
+          interval: 5,
+          previousWin: 1910,
+          followingWin: 1915,
+        },
       ],
       min: [
         {
@@ -130,6 +143,65 @@ describe('Get Award-Winning Producers Use Case', () => {
           interval: 5,
           previousWin: 1900,
           followingWin: 1905,
+        },
+        {
+          producer: 'Producer A',
+          interval: 5,
+          previousWin: 1905,
+          followingWin: 1910,
+        },
+        {
+          producer: 'Producer A',
+          interval: 5,
+          previousWin: 1910,
+          followingWin: 1915,
+        },
+      ],
+    });
+  });
+
+  it('should handle multiple movies with the same producer with more than one consecutive awards', async () => {
+    repository.findAwardWinningProducers.mockResolvedValueOnce([
+      MovieFactory.create('Movie 1', 1990, true).addProducer(producerA),
+      MovieFactory.create('Movie 2', 1991, true).addProducer(producerA),
+      MovieFactory.create('Movie 3', 2002, true).addProducer(producerB),
+      MovieFactory.create('Movie 4', 2003, true).addProducer(producerB),
+      MovieFactory.create('Movie 5', 1980, true).addProducer(producerB),
+      MovieFactory.create('Movie 6', 2015, true).addProducer(producerB),
+      MovieFactory.create('Movie 7', 2037, true).addProducer(producerB),
+    ]);
+
+    const useCase = new GetAwardWinningProducersUseCase(repository);
+    const result = await useCase.execute();
+
+    expect(repository.findAwardWinningProducers).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      max: [
+        {
+          producer: 'Producer B',
+          interval: 22,
+          previousWin: 1980,
+          followingWin: 2002,
+        },
+        {
+          producer: 'Producer B',
+          interval: 22,
+          previousWin: 2015,
+          followingWin: 2037,
+        },
+      ],
+      min: [
+        {
+          producer: 'Producer A',
+          interval: 1,
+          previousWin: 1990,
+          followingWin: 1991,
+        },
+        {
+          producer: 'Producer B',
+          interval: 1,
+          previousWin: 2002,
+          followingWin: 2003,
         },
       ],
     });

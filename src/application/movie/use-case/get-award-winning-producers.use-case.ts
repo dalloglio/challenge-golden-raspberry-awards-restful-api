@@ -41,19 +41,24 @@ export class GetAwardWinningProducersUseCase {
     producerAwards: Map<string, number[]>,
     minOrMax: 'min' | 'max'
   ): ProducersWithInterval[] {
-    return Array.from(producerAwards.entries()).map(([producerName, years]) => {
-      const intervals = this.calculateIntervalYears(years);
-      const interval = Math[minOrMax](...intervals);
-      const intervalIndex = intervals.indexOf(interval);
-      const previousWin = years[intervalIndex];
-      const followingWin = years[intervalIndex + 1];
-      return {
-        producer: producerName,
-        interval: interval,
-        previousWin,
-        followingWin,
-      };
+    const producers: ProducersWithInterval[] = [];
+
+    Array.from(producerAwards.entries()).forEach(([producer, years]) => {
+      const intervalYears = this.calculateIntervalYears(years);
+      const interval = Math[minOrMax](...intervalYears);
+      intervalYears.forEach((intervalYear, index) => {
+        if (intervalYear === interval) {
+          producers.push({
+            producer,
+            interval,
+            previousWin: years[index],
+            followingWin: years[index + 1],
+          });
+        }
+      });
     });
+
+    return producers;
   }
 
   private calculateIntervalYears(years: number[]): number[] {
